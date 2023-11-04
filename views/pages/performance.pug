@@ -1,0 +1,217 @@
+extends ../layout
+
+block content
+  .row
+    .col-md-12#listLicence
+      .card
+        .card-header
+          h4.card-title.d-inline Manage Performance
+          if session.division_id == 1
+            button#btnAdd.btn.btn-mini.btn-primary.mr-1.float-right(type="button" onClick="return openForm();")
+              | Upload Performance
+        .card-body
+          .table-responsive
+            table#license-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
+              thead
+                tr
+                  th Aksi
+                  th Email
+                  th Position
+                  th Performance
+                  th Performance Score
+                  th Flight Risk 
+                  th Achivement 
+                  th Directorate Name
+                  th Location
+              tbody
+
+    if session.division_id == 1
+      .col-md-4.col-sm-12#formAction(style="display: none;" data-action="add")
+        .card
+          .card-header
+            .card-head-row
+              h5.card-title#modalTitle
+              .card-tools
+                button.close(type='button' onClick="return closeForm();")
+                  span(aria-hidden='true') ×
+          form#formPerformance
+            .modal-body
+              input.form-control#licenseId(type='hidden' name="lisenceId")
+              .form-group
+                label(for='salesPerformance') Upload File Performance
+                input.form-control#salesPerformance(type='file' name="salesPerformance" required placeholder='Upload File CSV')
+                small.text-danger Format File harus CSV
+
+            .card-footer
+              button.btn.btn-success.btn-sm(type='submit') Simpan Data
+
+
+
+
+block script
+  // Datatables
+  script(src='/assets/js/plugin/datatables/datatables.min.js')
+  script.
+
+    let dTable;
+    $(function(){
+      dataTable()
+    })
+
+    function getData(id){
+      $.ajax({
+        url: `/manage-license/detail/${id}`,
+        method: "GET",
+        beforeSend: function () {
+          console.log('Getting data... !');
+        },
+        success: function(msg){
+          console.log("response : ", msg)
+          const data = msg.data;
+          const id = data._id;
+          const deviceKey = data.deviceKey;
+          const type = data.type;
+          const status = data.isActive ? "actived" : "disabled"
+          $("#licenseId").val(id)
+          $("#deviceKey").val(deviceKey)
+          $("#type").val(type)
+          $("#status").val(status).change()
+          $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
+          $("#modalTitle").html("Edit Lisensi")
+          $("#formAction").attr("data-action","update").show()
+        },
+        error: function (error) {
+          console.log("error : ", error.responseJSON)
+          showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+        },
+      })
+    }
+
+    function removeData(id){
+      $.ajax({
+        url: "/manage-license/delete",
+        method: "DELETE",
+        data: {
+          id: id
+        },
+        beforeSend: function () {
+          return confirm("Yakin untuk menghapus data ?");
+          console.log('Sending data... !');
+        },
+        success: function(msg){
+          closeForm()
+          dTable.ajax.reload(null, false)
+            showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+        },
+        error: function (error) {
+          console.log("error : ", error.responseJSON)
+          showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+        },
+      })
+    }
+
+
+
+    function openForm(){
+      $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
+      $("#modalTitle").html("Form Performance")
+      $("#formAction").attr("data-action","add").show()
+    }
+
+    function closeForm(){
+      $("#listLicence").removeClass("col-md-8").addClass("col-md-12")
+      $("#formPerformance").trigger("reset")
+      $("#modalTitle").html("")
+      $("#formAction").hide()
+    }
+
+    $(document).ready(function(){
+      $("#formPerformance").submit(function(e){
+        e.preventDefault()
+        const data = {
+          id: $('#licenseId').val(),
+          deviceKey: $('#deviceKey').val(),
+          type: $('#type').val(),
+          status: $('#status').val() == "actived" ? true : false
+        }
+        const action = $("#formAction").attr("data-action")
+        const url = action == "add" ? "/manage-license/create" : "/manage-license/update"
+        console.log(url)
+        $.ajax({
+          url,
+          type: "POST",
+          data,
+          beforeSend: function () {
+            console.log('Sending data... !');
+          },
+          success: function(msg){
+            closeForm()
+            dTable.ajax.reload(null, false)
+              showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+          },
+          error: function (error) {
+            console.log("error : ", error.responseJSON)
+            showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+          },
+        })
+      })
+    })
+
+    function dataTable(){
+      const url = "/performance/datatable"
+      dTable = $('#license-datatable').DataTable({
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        responsive: true,
+        processing: true,
+        serverSide: true,
+        searchDelay: 1000,
+        paging: true,
+        lengthMenu: [5, 10, 50, 100, 150],
+        pageLength: [10],
+        order: [[1, "desc"]],
+        ajax: url,
+        columns: [{
+          data: "action",
+          },
+          {
+            data : "email"
+          },
+          {
+            data : "position"
+          },
+          {
+            data : "sales_performance"
+          },
+          {
+            data : "performance_score"
+          },
+          {
+            data : "flight_risk"
+          },
+          {
+            data : "achivement"
+          },
+          {
+            data : "directorate_name"
+          },
+          {
+            data : "location_group"
+          },
+        ],
+        "pageLength": 10
+        })
+    }
+
+    //-  th Aksi
+    //-               th Email
+    //-               th Position
+    //-               th Performance
+    //-               th Performance Score
+    //-               th Flight Risk 
+    //-               th Achivement 
+    //-               th Directorate Name
+    //-               th Location
+
+

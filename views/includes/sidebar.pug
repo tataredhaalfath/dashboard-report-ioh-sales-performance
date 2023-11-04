@@ -12,10 +12,29 @@
             i.fa.fa-ellipsis-h
           h4.text-section Manage
         li.nav-item
-          a(href='/manage-license')
-            i.fas.fa-check-circle
-            p Manage Lisensi
+          a(href='/performance')
+            i.fas.fa-chart-line
+            p Performance
+        if session.division_id == 1
+          li.nav-item
+            a(href='/manage-license')
+              i.fas.fa-sitemap
+              p Division
+          li.nav-item
+            a(href='/manage-license')
+              i.fas.fa-users
+              p User
+          li.nav-item
+            a(href='/manage-license')
+              i.fas.fa-chart-bar
+              p User Performance
         li.nav-item
-          a(href='/signout')
+          a(href='/manage-license')
+            i.fas.fa-book
+            p Learning Recomendation
+
+
+        li.nav-item
+          a(href='/logout')
             i.fas.fa-sign-out-alt
             p Logout

@@ -6,6 +6,9 @@ const bcrypt = require("bcrypt");
 const { signin, verify } = require("../middleware/jwt");
 module.exports = {
   index: async (req, res, next) => {
+    if (req.session.user) {
+      return res.redirect("/");
+    }
     res.render("pages/login", {
       title: "Login",
     });
@@ -73,7 +76,7 @@ module.exports = {
         return res.redirect("/login");
       } else {
         const user = await User.findOne({
-          attributes: ["id", "email"],
+          attributes: ["id", "email", "division_id"],
           include: {
             attributes: ["id", "name"],
             model: Division,

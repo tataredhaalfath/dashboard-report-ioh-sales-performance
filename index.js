@@ -9,6 +9,8 @@ const session = require("express-session");
 const cors = require("cors");
 const env = process.env.NODE_ENV || "development";
 const port = process.env.NODE_PORT || 8000;
+const configDB = require("./config/connection")[env];
+const MySQLStore = require("express-mysql-session")(session);
 const routes = require("./routes");
 
 //view engin
@@ -23,12 +25,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+const sessionStore = new MySQLStore({
+  host: configDB.host,
+  port: 3306,
+  user: configDB.username,
+  password: configDB.password,
+  database: configDB.database,
+});
+
 app.use(
   session({
     secret: "ioh team 3",
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 60000 },
+    store: sessionStore,
+    cookie: { maxAge: 21600000 },
   })
 );
 // Routing
