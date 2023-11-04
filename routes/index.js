@@ -1,10 +1,12 @@
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
 const app = require("express").Router();
+const isAdmin = require("../middleware/isAdmin");
 const Auth = require("../controller/authController");
+const Division = require("../controller/divisionController");
 const Dashboard = require("../controller/dashbaordController");
 const Performance = require("../controller/performanceController");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
 const uploadDir = path.resolve(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -29,8 +31,6 @@ app.use(function (req, res, next) {
 
 app.get("/", Dashboard.index);
 app.get("/performance", Performance.index);
-
-// API
 app.get("/performance/datatable", Performance.dataTable);
 app.post(
   "/performance/import",
@@ -38,5 +38,14 @@ app.post(
   Performance.importPerformance
 );
 app.delete("/performance/delete", Performance.destroy);
+
+// DIVISION
+app.use("/division", isAdmin);
+app.get("/division", Division.index);
+app.get("/division/datatable", Division.dataTable);
+app.get("/division/:id/detail", Division.getDetail);
+app.post("/division/create", Division.create);
+app.post("/division/update", Division.update);
+app.delete("/division/delete", Division.destroy);
 
 module.exports = app;

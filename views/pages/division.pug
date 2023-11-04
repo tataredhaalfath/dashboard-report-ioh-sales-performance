@@ -1,0 +1,158 @@
+extends ../layout
+block styles 
+  //- link(rel='stylesheet' type='text/css' href='/assets/pages/advance-elements/css/bootstrap-datetimepicker.css')
+
+block content
+  .row
+    .col-md-8#listLicence
+      .card
+        .card-header
+          h4.card-title.d-inline Manage Division
+          div.float-right
+            button.btn.btn-mini.btn-info.mr-1(onclick="return refreshData();") Refresh
+        .card-body
+          .table-responsive
+            table#division-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
+              thead
+                tr
+                  th Aksi 
+                  th Name
+              tbody
+
+    if session.division_id == 1
+      .col-md-4.col-sm-12#formEditable( data-action="add")
+        .card
+          .card-header
+            .card-head-row
+              h5.card-title#modalTitle Edit / Tambah Divisi
+              .card-tools
+                button.close(type='button' onClick="return closeForm();")
+                  span(aria-hidden='true') ×
+          form#formDivision
+            .modal-body
+              input.form-control#id(type='hidden' name="id")
+              .form-group
+                label(for='name') Nama Divisi
+                input.form-control#name(type='text' name="name" required placeholder="Masukkan nama divisi")
+            .card-footer
+              button#save.btn.btn-success.btn-sm(type='submit') Simpan Data
+
+block script
+  // Datatables
+  script(src='/assets/js/plugin/datatables/datatables.min.js')
+  script.
+    let dTable;
+    $(function(){
+      dataTable()
+    })
+
+    function refreshData() {
+      dTable.ajax.reload(null, false)
+    }
+
+    function removeData(id){
+      $.ajax({
+        url:"/division/delete",
+        method: "DELETE",
+        data: {
+          id: id
+        },
+        beforeSend: function () {
+          return confirm("Yakin untuk menghapus data ?");
+          console.log('Sending data... !');
+        },
+        success: function(msg){
+          dTable.ajax.reload(null, false)
+            showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+        },
+        error: function (error) {
+          console.log("error : ", error)
+          showMessage('danger', 'flaticon-error', 'Error !',error.message || error.responseJSON?.message)
+        },
+      })
+    }
+
+    function dataTable(){
+      let url = "/division/datatable"
+
+      dTable = $('#division-datatable').DataTable({
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        responsive: true,
+        processing: true,
+        serverSide: true,
+        searchDelay: 1000,
+        paging: true,
+        lengthMenu: [5, 10, 50],
+        pageLength: [10],
+        order: [[1, "desc"]],
+        ajax: url,
+        columns: [{
+          data: "action",
+          width: "100px"
+          },
+          {
+            data : "name"
+          },
+        ],
+        "pageLength": 10
+        })
+    }
+
+    function getData(id) {
+      $.ajax({
+        url: `/division/${id}/detail`,
+        method: "GET",
+        dataType: "json",
+        success: function(res) {
+          $("#formEditable").attr("data-action", "update").fadeIn(200, function() {
+            let d = res.data;
+            $("#id").val(d.id);
+            $("#name").val(d.name);
+          })
+        },
+        error: function(err) {
+          console.log("error :", err);
+          showMessage("warning", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message);
+        }
+      })
+    }
+
+    $("#formEditable form").submit(function(e) {
+      e.preventDefault();
+      let dataToSend = {
+        id: $("#id").val(),
+        name: $("#name").val(),
+      }
+
+      saveData(dataToSend, $("#formEditable").attr("data-action"));
+      return false;
+    });
+
+    function saveData(data, action) {
+      $("#save").attr("disabled", true)
+      $.ajax({
+        url: action == "update" ? "/division/update" : "/division/create",
+        method: "POST",
+        data: data,
+        header: {
+          'Content-Type' : 'application/json'
+        },
+        beforeSend: function() {
+          console.log("Loading...")
+        },
+        success: function(res) {
+          $("#save").removeAttr("disabled")
+          refreshData();
+          showMessage("success", "flaticon-alarm-1", "Sukses", res.message)
+        },
+        error: function(err) {
+          $("#save").removeAttr("disabled")
+          console.log("error :", err);
+          showMessage("danger", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message)
+        }
+      })
+    }

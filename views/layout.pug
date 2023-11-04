@@ -50,8 +50,6 @@ script.
   });
 
   const currentURL = window.location.pathname;
-  console.log("current url; :", currentURL)
-  const menuLink = document.querySelector(`li.nav-item a[href="${currentURL}"]`);  
-  console.log("menu linnk")
+  const menuLink = document.querySelector(`li.nav-item a[href="${currentURL}"]`);
   menuLink.parentElement.classList.add('active');
 block script

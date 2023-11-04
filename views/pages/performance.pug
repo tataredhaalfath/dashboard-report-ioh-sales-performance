@@ -8,9 +8,11 @@ block content
       .card
         .card-header
           h4.card-title.d-inline Manage Performance
-          if session.division_id == 1
-            button#btnAdd.btn.btn-mini.btn-primary.mr-1.float-right(type="button" onClick="return openForm();")
-              | Upload Performance
+            div.float-right
+              button.btn.btn-mini.btn-info.mr-1(onclick="return refreshData();") Refresh
+              if session.division_id == 1
+                button#btnAdd.btn.btn-mini.btn-primary(type="button" onClick="return openForm();")
+                  | Upload Performance
         .card-body
           div.mt-10.mb-3
             form#searchField(autocomplete="off")
@@ -31,7 +33,7 @@ block content
                   button(type="submit").btn.btn-sm.btn-primary.btn-block.mt-1 Submit
 
           .table-responsive
-            table#license-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
+            table#performance-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
               thead
                 tr
                   th Aksi
@@ -58,7 +60,6 @@ block content
                   span(aria-hidden='true') ×
           form#formPerformance
             .modal-body
-              input.form-control#licenseId(type='hidden' name="lisenceId")
               .form-group
                 label(for='salesPerformance') Upload File Performance
                 input.form-control#fileCsv(type='file' name="salesPerformance" required placeholder='Upload File CSV')
@@ -93,8 +94,11 @@ block script
       dataTable()
     })
 
+    function refreshData() {
+      dTable.ajax.reload(null, false)
+    }
+
     function removeData(id){
-      console.log("id :",id)
       $.ajax({
         url:"/performance/delete",
         method: "DELETE",
@@ -118,12 +122,14 @@ block script
     }
 
     function openForm(){
+      $("#save").removeAttr("disabled")
       $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
       $("#modalTitle").html("Form Performance")
       $("#formAction").attr("data-action","add").show()
     }
 
     function closeForm(){
+      $("#save").removeAttr("disabled")
       $("#listLicence").removeClass("col-md-8").addClass("col-md-12")
       $("#formPerformance").trigger("reset")
       $("#modalTitle").html("")
@@ -150,7 +156,7 @@ block script
           $("#save").removeAttr("disabled")
           closeForm()
           dTable.ajax.reload(null, false)
-            showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+          showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
         },
         error: function (error) {
           $("#save").removeAttr("disabled")
@@ -182,7 +188,7 @@ block script
         } else {
           url = url
         }     
-      dTable = $('#license-datatable').DataTable({
+      dTable = $('#performance-datatable').DataTable({
         searching: true,
         ordering: true,
         lengthChange: true,

@@ -26,7 +26,7 @@ module.exports = {
       if (validate.length) {
         return res.status(400).json({
           status: "error",
-          message: validate,
+         message: validate[0].message,
         });
       }
 
