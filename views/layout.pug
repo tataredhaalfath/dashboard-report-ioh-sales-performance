@@ -1,0 +1,45 @@
+doctype html
+head
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  title Addon WA-Bot
+  meta(content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport')
+  include includes/styles
+.wrapper
+  .main-header
+    // Logo Header
+    .logo-header(data-background-color='blue')
+      button.navbar-toggler.sidenav-toggler.ml-auto(type='button' data-toggle='collapse' data-target='collapse' aria-expanded='false' aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+          i.icon-menu
+      button.topbar-toggler.more
+        i.icon-options-vertical
+      .nav-toggle
+        button.btn.btn-toggle.toggle-sidebar
+          i.icon-menu
+    // End Logo Header
+    // Navbar Header
+    include includes/navbar
+    // End Navbar
+  // Sidebar
+  include includes/sidebar
+  .main-panel
+    .container
+      .page-inner
+        block content
+
+    footer.footer
+      .container-fluid
+        nav.pull-left
+          ul.nav
+            li.nav-item
+              a.nav-link(href='https://payuni.co.id')
+                | payuni Software
+        .copyright.ml-auto
+          | 2023, made with 
+          i.fa.fa-heart.heart.text-danger
+          |  by 
+          a(href='https://payuni.co.id') Payuni
+
+block modal
+include includes/script
+block script

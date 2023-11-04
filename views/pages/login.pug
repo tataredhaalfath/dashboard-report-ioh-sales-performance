@@ -1,0 +1,70 @@
+doctype html
+head
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  title Login
+  meta(content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport')
+  include ../includes/styles
+body.login
+  .wrapper.wrapper-login
+    .container.container-login.animated.fadeIn
+      h3.text-center #{ title }
+      form#login.login-form
+        .form-group
+          label.placeholder(for='email')
+            b Email
+          input#email.form-control(name='email' type='text' required='')
+        .form-group
+          label.placeholder(for='password')
+            b Password
+          //- a.link.float-right(href='#') Forget Password ?
+          .position-relative
+            input#password.form-control(name='password' type='password' required='')
+            .show-password
+              i.icon-eye
+        .form-group.form-action-d-flex.mb-3
+          //- .custom-control.custom-checkbox
+          //- input#rememberme.custom-control-input(type='checkbox')
+          //- label.custom-control-label.m-0(for='rememberme') Remember Me
+          button.btn.btn-primary.col-md-5.mx-auto.float-right.mt-3.mt-sm-0.fw-bold(type='submit') Sign In
+        .login-account
+          //- span.msg Don&apos;t have an account yet ?
+          //- a#show-signup.link(href='') Sign Up
+include ../includes/script
+
+script(src='/assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js')
+script(src='/assets/js/alert.js')
+script.
+  $(document).ready(function() {
+
+    $('#login').on("submit", function(e){
+      console.log("login")
+      e.preventDefault()
+      let payload = {
+        email: $('#email').val(),
+        password: $('#password').val()
+      }
+      console.log("payload :", payload)
+
+      $.ajax({
+        url: '/login/auth',
+        method: "POST",
+        data: payload,
+        header: {
+          "Content-Type":"application/json"
+        },
+        beforeSend: function(){
+          console.log("Send data login...")
+        },
+        success: function(response){
+          console.log("response : ", response)
+            showMessage('success', 'flaticon-alarm-1', 'Success !', response.message)
+            setInterval(function() {
+              window.location.href = '/';
+            }, 2000)
+        },
+        error: function(err){
+          showMessage('danger', 'flaticon-error', 'Error !', err.message || err.responseJSON?.message)
+        }
+      })
+    })
+  })

@@ -1,0 +1,208 @@
+extends ../layout
+
+block content
+  .row
+    .col-md-12#listLicence
+      .card
+        .card-header
+          h4.card-title.d-inline Manage Lisensi
+          button.btn.btn-info.btn-round.float-right(type="button" onClick="return openForm();")
+            i.fa.fa-plus-circle  Tambah Lisensi
+        .card-body
+          .table-responsive
+            table#license-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
+              thead
+                tr
+                  th Aksi
+                  th Device Key
+                  th Type
+                  th Status
+              tbody
+
+    .col-md-4.col-sm-12#formAction(style="display: none;" data-action="add")
+      .card
+        .card-header
+          .card-head-row
+            h5.card-title#modalTitle
+            .card-tools
+              button.close(type='button' onClick="return closeForm();")
+                span(aria-hidden='true') ×
+        form#formLicenceSubmit
+          .modal-body
+            input.form-control#licenseId(type='hidden' name="lisenceId")
+            .form-group
+              label(for='deviceKey') Device Key
+              input.form-control#deviceKey(type='text' name="deviceKey" required placeholder='Masukkan Device Key')
+            .form-group
+              label(for='type') Type
+              input.form-control#type(type='text' name="type" required placeholder='Masukkan Device Key')
+            .form-group
+              label(for='status') Status
+              select#status(name="status").form-control
+                option(value='actived') Aktif
+                option(value='disabled') Disable
+          .card-footer
+            button.btn.btn-success.btn-sm(type='submit') Simpan Data
+
+
+
+
+block script
+  // Datatables
+  script(src='/assets/js/plugin/datatables/datatables.min.js')
+  script.
+
+    let dTable;
+    $(function(){
+      dataTable()
+    })
+
+    function getData(id){
+      $.ajax({
+        url: `/manage-license/detail/${id}`,
+        method: "GET",
+        beforeSend: function () {
+          console.log('Getting data... !');
+        },
+        success: function(msg){
+          console.log("response : ", msg)
+          const data = msg.data;
+          const id = data._id;
+          const deviceKey = data.deviceKey;
+          const type = data.type;
+          const status = data.isActive ? "actived" : "disabled"
+          $("#licenseId").val(id)
+          $("#deviceKey").val(deviceKey)
+          $("#type").val(type)
+          $("#status").val(status).change()
+          $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
+          $("#modalTitle").html("Edit Lisensi")
+          $("#formAction").attr("data-action","update").show()
+        },
+        error: function (error) {
+          console.log("error : ", error.responseJSON)
+          showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+        },
+      })
+    }
+
+    function removeData(id){
+      $.ajax({
+        url: "/manage-license/delete",
+        method: "DELETE",
+        data: {
+          id: id
+        },
+        beforeSend: function () {
+          return confirm("Yakin untuk menghapus data ?");
+          console.log('Sending data... !');
+        },
+        success: function(msg){
+          closeForm()
+          dTable.ajax.reload(null, false)
+            showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+        },
+        error: function (error) {
+          console.log("error : ", error.responseJSON)
+          showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+        },
+      })
+    }
+
+    
+
+    function openForm(){
+      $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
+      $("#modalTitle").html("Tambah Lisensi")
+      $("#formAction").attr("data-action","add").show()
+    }
+
+    function closeForm(){
+      $("#listLicence").removeClass("col-md-8").addClass("col-md-12")
+      $("#formLicenceSubmit").trigger("reset")
+      $("#modalTitle").html("")
+      $("#formAction").hide()
+    }
+
+    $(document).ready(function(){
+      $("#formLicenceSubmit").submit(function(e){
+        e.preventDefault()
+        const data = {
+          id: $('#licenseId').val(),
+          deviceKey: $('#deviceKey').val(),
+          type: $('#type').val(),
+          status: $('#status').val() == "actived" ? true : false
+        }
+        const action = $("#formAction").attr("data-action")
+        const url = action == "add" ? "/manage-license/create" : "/manage-license/update"
+        console.log(url)
+        $.ajax({
+          url,
+          type: "POST",
+          data,
+          beforeSend: function () {
+            console.log('Sending data... !');
+          },
+          success: function(msg){
+            closeForm()
+            dTable.ajax.reload(null, false)
+              showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+          },
+          error: function (error) {
+            console.log("error : ", error.responseJSON)
+            showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+          },
+        })
+      })
+    })
+
+    function dataTable(){
+      const url = "/manage-license/datatable"
+      dTable = $('#license-datatable').DataTable({
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        responsive: true,
+        processing: true,
+        serverSide: true,
+        searchDelay: 1000,
+        paging: true,
+        lengthMenu: [5, 10, 25, 50],
+        pageLength: [10],
+        order: [[1, "desc"]],
+        ajax: url,
+        columns: [
+          {
+            data: null,
+            render: function (data, type, row, meta) {
+              return `<div class="dropdown show">
+                        <a class="btn btn-sm btn-info text-white dropdown-toggle" href="#" role="button" id="dropdownAction" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Action
+                        </a>
+
+                        <div class="dropdown-menu" aria-labelledby="dropdownAction">
+                          <a class="dropdown-item" onClick="return getData('${row._id}')" href="#">Edit</a>
+                          <a class="dropdown-item" onClick="return removeData('${row._id}')" href="#">Hapus</a>
+                        </div>
+                      </div>`
+            },
+          },
+          {
+            data : "deviceKey"
+          },
+          {
+            data : "type"
+          },
+          {
+            data: null,
+            render: function (data, type, row, meta) {
+              return row.isActive == true
+                ? '<div class="badge badge-success">Active</div>'
+                : '<div class="badge badge-danger">Disabled</div>';
+            },
+          }
+        ],
+        "pageLength": 10
+      })
+    }
+
