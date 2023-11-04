@@ -4,6 +4,7 @@ head
   title #{title}
   meta(content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport')
   include includes/styles
+  block styles
 .wrapper
   .main-header
     // Logo Header
@@ -42,4 +43,15 @@ head
 
 block modal
 include includes/script
+script.
+  const navItems = document.querySelectorAll('li.nav-item');
+  navItems.forEach((navItem) => {
+    navItem.classList.remove('active');
+  });
+
+  const currentURL = window.location.pathname;
+  console.log("current url; :", currentURL)
+  const menuLink = document.querySelector(`li.nav-item a[href="${currentURL}"]`);  
+  console.log("menu linnk")
+  menuLink.parentElement.classList.add('active');
 block script

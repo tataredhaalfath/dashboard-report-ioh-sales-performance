@@ -1,4 +1,6 @@
 extends ../layout
+block styles 
+  //- link(rel='stylesheet' type='text/css' href='/assets/pages/advance-elements/css/bootstrap-datetimepicker.css')
 
 block content
   .row
@@ -10,6 +12,24 @@ block content
             button#btnAdd.btn.btn-mini.btn-primary.mr-1.float-right(type="button" onClick="return openForm();")
               | Upload Performance
         .card-body
+          div.mt-10.mb-3
+            form#searchField(autocomplete="off")
+              div.row
+                div.col-md-3.col-lg-2.col-xs-12
+                  label(for="").font-weight-bold.m-b-10.d-sm-none Tanggal Mulai
+                  input.form-control.date-picker#dateFrom(type='text' placeholder='Pilih tanggal awal')
+                div.col-md-3.col-lg-2.col-xs-12
+                  label(for="").font-weight-bold.m-b-10.d-sm-none Tanggal Akhir
+                  input.form-control.date-picker#dateTo(type='text' placeholder='Pilih tanggal akhir')
+                if session.division_id == 1
+                  div.col-md-3.col-lg-2.col-xs-12
+                    select.form-control#division
+                      option(value="all") Pilih Divisi
+                      each d in divisions
+                        option(value=d.name)= d.name
+                div.col-md-3.col-lg-2.col-xs-12
+                  button(type="submit").btn.btn-sm.btn-primary.btn-block.mt-1 Submit
+
           .table-responsive
             table#license-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
               thead
@@ -17,12 +37,14 @@ block content
                   th Aksi
                   th Email
                   th Position
+                  th Average
                   th Performance
                   th Performance Score
                   th Flight Risk 
                   th Achivement 
                   th Directorate Name
                   th Location
+                  th Tanggal
               tbody
 
     if session.division_id == 1
@@ -39,11 +61,10 @@ block content
               input.form-control#licenseId(type='hidden' name="lisenceId")
               .form-group
                 label(for='salesPerformance') Upload File Performance
-                input.form-control#salesPerformance(type='file' name="salesPerformance" required placeholder='Upload File CSV')
+                input.form-control#fileCsv(type='file' name="salesPerformance" required placeholder='Upload File CSV')
                 small.text-danger Format File harus CSV
-
             .card-footer
-              button.btn.btn-success.btn-sm(type='submit') Simpan Data
+              button#save.btn.btn-success.btn-sm(type='submit') Simpan Data
 
 
 
@@ -51,45 +72,31 @@ block content
 block script
   // Datatables
   script(src='/assets/js/plugin/datatables/datatables.min.js')
+  // datepicker
+  script(src="/assets/js/plugin/moment/moment.min.js") 
+  script(src="/assets/js/plugin/datepicker/bootstrap-datetimepicker.min.js") 
+  //- js/plugin/datepicker/bootstrap-datetimepicker.min.js
+  // moment
+  script(type='text/javascript' src='/bower_components/bootstrap-datepicker/js/bootstrap-datepicker.js')
+  script(type='text/javascript' src='/bower_components/bootstrap-datepicker/js/bootstrap-datepicker.min.js')
+
   script.
 
     let dTable;
     $(function(){
+      $('#dateFrom').datetimepicker({
+        format: 'DD/MM/YYYY',
+      });
+      $('#dateTo').datetimepicker({
+        format: 'DD/MM/YYYY',
+      });
       dataTable()
     })
 
-    function getData(id){
-      $.ajax({
-        url: `/manage-license/detail/${id}`,
-        method: "GET",
-        beforeSend: function () {
-          console.log('Getting data... !');
-        },
-        success: function(msg){
-          console.log("response : ", msg)
-          const data = msg.data;
-          const id = data._id;
-          const deviceKey = data.deviceKey;
-          const type = data.type;
-          const status = data.isActive ? "actived" : "disabled"
-          $("#licenseId").val(id)
-          $("#deviceKey").val(deviceKey)
-          $("#type").val(type)
-          $("#status").val(status).change()
-          $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
-          $("#modalTitle").html("Edit Lisensi")
-          $("#formAction").attr("data-action","update").show()
-        },
-        error: function (error) {
-          console.log("error : ", error.responseJSON)
-          showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
-        },
-      })
-    }
-
     function removeData(id){
+      console.log("id :",id)
       $.ajax({
-        url: "/manage-license/delete",
+        url:"/performance/delete",
         method: "DELETE",
         data: {
           id: id
@@ -104,13 +111,11 @@ block script
             showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
         },
         error: function (error) {
-          console.log("error : ", error.responseJSON)
-          showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
+          console.log("error : ", error)
+          showMessage('danger', 'flaticon-error', 'Error !',error.message || error.responseJSON?.message)
         },
       })
     }
-
-
 
     function openForm(){
       $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
@@ -125,40 +130,58 @@ block script
       $("#formAction").hide()
     }
 
-    $(document).ready(function(){
-      $("#formPerformance").submit(function(e){
-        e.preventDefault()
-        const data = {
-          id: $('#licenseId').val(),
-          deviceKey: $('#deviceKey').val(),
-          type: $('#type').val(),
-          status: $('#status').val() == "actived" ? true : false
-        }
-        const action = $("#formAction").attr("data-action")
-        const url = action == "add" ? "/manage-license/create" : "/manage-license/update"
-        console.log(url)
-        $.ajax({
-          url,
-          type: "POST",
-          data,
-          beforeSend: function () {
-            console.log('Sending data... !');
-          },
-          success: function(msg){
-            closeForm()
-            dTable.ajax.reload(null, false)
-              showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
-          },
-          error: function (error) {
-            console.log("error : ", error.responseJSON)
-            showMessage('danger', 'flaticon-error', 'Error !', error.responseJSON.message)
-          },
-        })
+    $("#formPerformance").submit(function(e){
+      e.preventDefault()
+      let csv = document.getElementById("fileCsv").files[0]
+      let formData = new FormData()
+      $("#save").attr("disabled", true);
+
+      formData.append("file_csv", csv);
+      $.ajax({
+        url: "/performance/import",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function () {
+          console.log('Sending data... !');
+        },
+        success: function(msg){
+          $("#save").removeAttr("disabled")
+          closeForm()
+          dTable.ajax.reload(null, false)
+            showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+        },
+        error: function (error) {
+          $("#save").removeAttr("disabled")
+          console.log("error : ", error)
+          showMessage('danger', 'flaticon-error', 'Error !', error.message || error.responseJSON?.message)
+        },
       })
     })
 
-    function dataTable(){
-      const url = "/performance/datatable"
+    $("#searchField").submit(function() {
+
+      var q = {
+        start_date : $('#dateFrom').val().split('/').join('-'),
+        end_date : $('#dateTo').val().split('/').join('-'),
+        division: $("#division").val()
+      }
+
+      dTable.clear();
+      dTable.destroy();
+      dataTable($.param(q))
+      return false;
+    })
+
+
+    function dataTable(query){
+      let url = "/performance/datatable"
+        if (query) {
+          url += '?' + query
+        } else {
+          url = url
+        }     
       dTable = $('#license-datatable').DataTable({
         searching: true,
         ordering: true,
@@ -182,6 +205,9 @@ block script
             data : "position"
           },
           {
+            data : "average"
+          },
+          {
             data : "sales_performance"
           },
           {
@@ -199,19 +225,10 @@ block script
           {
             data : "location_group"
           },
+          {
+            data: "createdAt"
+          }
         ],
         "pageLength": 10
         })
     }
-
-    //-  th Aksi
-    //-               th Email
-    //-               th Position
-    //-               th Performance
-    //-               th Performance Score
-    //-               th Flight Risk 
-    //-               th Achivement 
-    //-               th Directorate Name
-    //-               th Location
-
-
