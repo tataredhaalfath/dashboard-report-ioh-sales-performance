@@ -1,0 +1,284 @@
+extends ../layout
+block content
+  .row
+    .col-md-12#listuser
+      .card
+        .card-header
+          h4.card-title.d-inline Manage Performance
+            div.float-right
+              button.btn.btn-sm.btn-info.mr-1(onclick="return refreshData();") Refresh
+              if session.division_id == 1
+                button#btnAdd.btn.btn-sm.btn-primary.mr-1(type="button" onClick="return openFormImport();")
+                  | Upload User
+                button#btnAdd.btn.btn-sm.btn-success(type="button" onClick="return openForm();")
+                  | Tambah
+        .card-body
+          div.mt-10.mb-3
+            form#searchField(autocomplete="off")
+              div.row
+                if session.division_id == 1
+                  div.col-md-3.col-lg-2.col-xs-12
+                    select.form-control#fdivision
+                      option(value="all") Pilih Divisi
+                      each d in divisions
+                        option(value=d.name)= d.name
+                div.col-md-3.col-lg-2.col-xs-12
+                  button(type="submit").btn.btn-sm.btn-primary.mt-1 Submit
+
+          .table-responsive
+            table#user-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
+              thead
+                tr
+                  th Aksi
+                  th Email
+                  th Divisi
+              tbody
+
+    if session.division_id == 1
+      .col-md-4.col-sm-12#formImport(style="display: none;" data-action="add")
+        .card
+          .card-header
+            .card-head-row
+              h5.card-title Import Data User
+              .card-tools
+                button.close(type='button' onClick="return closeFormImport();")
+                  span(aria-hidden='true') ×
+          form#formImportUser
+            .modal-body
+              .form-group
+                label(for='salesPerformance') Upload Data User
+                input.form-control#fileCsv(type='file' name="salesPerformance" required placeholder='Upload File CSV')
+                small.text-danger Format File harus CSV
+            .card-footer
+              button#saveImport.btn.btn-success.btn-sm(type='submit') Simpan Data
+
+      .col-md-4.col-sm-12#formEditable(style="display: none;" data-action="add")
+        .card
+          .card-header
+            .card-head-row
+              h5.card-title Tambah / Update User
+              .card-tools
+                button.close(type='button' onClick="return closeForm();")
+                  span(aria-hidden='true') ×
+          form#formAddUser
+            .modal-body
+              .form-group
+                input.form-control#id(type='hidden')
+                label(for='email') Email
+                input.form-control#email(type='email' name="email" required placeholder='email')
+              .form-group
+                label(for='password') Password
+                input.form-control#password(type='password' name="password" placeholder='password')
+              .form-group
+                label(for='division') Divisi
+                select.form-control#division(required)
+                  option(value="") Pilih Divisi
+                  each d in divisions
+                    option(value=d.id)= d.name
+            .card-footer
+              button#save.btn.btn-success.btn-sm(type='submit') Simpan Data
+
+
+block script
+  // Datatables
+  script(src='/assets/js/plugin/datatables/datatables.min.js')
+  script.
+    let dTable;
+    $(function(){
+      dataTable()
+    })
+
+    function dataTable(query){
+      let url = "/user/datatable"
+        if (query) {
+          url += '?' + query
+        } else {
+          url = url
+        }     
+      dTable = $('#user-datatable').DataTable({
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        responsive: true,
+        processing: true,
+        serverSide: true,
+        searchDelay: 1000,
+        paging: true,
+        lengthMenu: [5, 10, 50, 100, 150],
+        pageLength: [10],
+        order: [[1, "desc"]],
+        ajax: url,
+        columns: [{
+          data: "action",
+          },
+          {
+            data : "email"
+          },
+          {
+            data : "Division.name"
+          },
+        ],
+        "pageLength": 10
+        })
+    }
+
+    function refreshData() {
+      dTable.ajax.reload(null, false)
+    }
+
+    function getData(id) {
+      $.ajax({
+        url: `/user/${id}/detail`,
+        method: "GET",
+        dataType: "json",
+        success: function(res) {
+          $("#formEditable").attr("data-action", "update").fadeIn(200, function() {
+            $("#listuser").removeClass("col-md-12").addClass("col-md-8");
+            let d = res.data;
+            $("#id").val(d.id);
+            $("#email").val(d.email);
+            $("#division").val(d.division_id);
+            $("#password").removeAttr("required")
+          })
+        },
+        error: function(err) {
+          console.log("error :", err);
+          showMessage("warning", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message);
+        }
+      })
+    }
+
+    $("#formEditable form").submit(function(e) {
+      e.preventDefault();
+      let dataToSend = {
+        id: $("#id").val(),
+        email: $("#email").val(),
+        password: $("#password").val(),
+        division_id: $("#division").val(),
+      }
+
+      saveData(dataToSend, $("#formEditable").attr("data-action"));
+      return false;
+    });
+
+    function saveData(data, action) {
+      $("#save").attr("disabled", true)
+      $.ajax({
+        url: action == "update" ? "/user/update" : "/user/create",
+        method: "POST",
+        data: data,
+        header: {
+          'Content-Type' : 'application/json'
+        },
+        beforeSend: function() {
+          console.log("Loading...")
+        },
+        success: function(res) {
+          $("#save").removeAttr("disabled")
+          refreshData();
+          showMessage("success", "flaticon-alarm-1", "Sukses", res.message)
+        },
+        error: function(err) {
+          $("#save").removeAttr("disabled")
+          console.log("error :", err);
+          showMessage("danger", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message)
+        }
+      })
+    }
+
+    function removeData(id){
+      $.ajax({
+        url:"/user/delete",
+        method: "DELETE",
+        data: {
+          id: id
+        },
+        beforeSend: function () {
+          return confirm("Yakin untuk menghapus data ?");
+          console.log('Sending data... !');
+        },
+        success: function(msg){
+          closeForm()
+          dTable.ajax.reload(null, false)
+            showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+        },
+        error: function (error) {
+          console.log("error : ", error)
+          showMessage('danger', 'flaticon-error', 'Error !',error.message || error.responseJSON?.message)
+        },
+      })
+    }
+
+    function openForm(){
+      $("#password").attr("required", true)
+      $("#save").removeAttr("disabled")
+      $("#listuser").removeClass("col-md-12").addClass("col-md-8")
+      $("#formEditable").attr("data-action","add").fadeIn(200)
+      $("#formImport").hide()
+    }
+
+    function openFormImport(){
+      $("#saveImport").removeAttr("disabled")
+      $("#listuser").removeClass("col-md-12").addClass("col-md-8")
+      $("#formImport").attr("data-action","add").fadeIn(200)
+      $("#formEditable").hide()
+    }
+
+    function closeForm(){
+      $("#password").attr("required", true)
+      $("#save").removeAttr("disabled")
+      $("#listuser").removeClass("col-md-8").addClass("col-md-12")
+      $("#formAddUser").trigger("reset")
+      $("#formEditable").hide()
+    }
+
+    function closeFormImport(){
+      $("#saveImport").removeAttr("disabled")
+      $("#listuser").removeClass("col-md-8").addClass("col-md-12")
+      $("#formImportUser").trigger("reset")
+      $("#formImport").hide()
+    }
+
+    $("#formImportUser").submit(function(e){
+      e.preventDefault()
+      let csv = document.getElementById("fileCsv").files[0]
+      let formData = new FormData()
+      $("#saveImport").attr("disabled", true);
+
+      formData.append("file_csv", csv);
+      $.ajax({
+        url: "/user/import",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        beforeSend: function () {
+          console.log('Sending data... !');
+        },
+        success: function(msg){
+          $("#save").removeAttr("disabled")
+          closeFormImport()
+          dTable.ajax.reload(null, false)
+          showMessage("success", 'flaticon-alarm-1', 'Success !', msg.message)
+        },
+        error: function (error) {
+          $("#save").removeAttr("disabled")
+          console.log("error : ", error)
+          showMessage('danger', 'flaticon-error', 'Error !', error.message || error.responseJSON?.message)
+        },
+      })
+    })
+
+    $("#searchField").submit(function() {
+      var q = {
+        division: $("#fdivision").val()
+      }
+
+      dTable.clear();
+      dTable.destroy();
+      dataTable($.param(q))
+      return false;
+    })
+

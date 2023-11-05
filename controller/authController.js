@@ -26,7 +26,7 @@ module.exports = {
       if (validate.length) {
         return res.status(400).json({
           status: "error",
-         message: validate[0].message,
+          message: validate[0].message,
         });
       }
 
@@ -80,6 +80,9 @@ module.exports = {
           include: {
             attributes: ["id", "name"],
             model: Division,
+          },
+          where: {
+            id: verified.id,
           },
         });
 

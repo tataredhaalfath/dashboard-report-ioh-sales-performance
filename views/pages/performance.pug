@@ -1,10 +1,7 @@
 extends ../layout
-block styles 
-  //- link(rel='stylesheet' type='text/css' href='/assets/pages/advance-elements/css/bootstrap-datetimepicker.css')
-
 block content
   .row
-    .col-md-12#listLicence
+    .col-md-12#listperformance
       .card
         .card-header
           h4.card-title.d-inline Manage Performance
@@ -30,7 +27,7 @@ block content
                       each d in divisions
                         option(value=d.name)= d.name
                 div.col-md-3.col-lg-2.col-xs-12
-                  button(type="submit").btn.btn-sm.btn-primary.btn-block.mt-1 Submit
+                  button(type="submit").btn.btn-sm.btn-primary.mt-1 Submit
 
           .table-responsive
             table#performance-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
@@ -123,14 +120,14 @@ block script
 
     function openForm(){
       $("#save").removeAttr("disabled")
-      $("#listLicence").removeClass("col-md-12").addClass("col-md-8")
+      $("#listperformance").removeClass("col-md-12").addClass("col-md-8")
       $("#modalTitle").html("Form Performance")
       $("#formAction").attr("data-action","add").show()
     }
 
     function closeForm(){
       $("#save").removeAttr("disabled")
-      $("#listLicence").removeClass("col-md-8").addClass("col-md-12")
+      $("#listperformance").removeClass("col-md-8").addClass("col-md-12")
       $("#formPerformance").trigger("reset")
       $("#modalTitle").html("")
       $("#formAction").hide()

@@ -145,6 +145,7 @@ block script
         },
         success: function(res) {
           $("#save").removeAttr("disabled")
+          $("#name").val("")
           refreshData();
           showMessage("success", "flaticon-alarm-1", "Sukses", res.message)
         },

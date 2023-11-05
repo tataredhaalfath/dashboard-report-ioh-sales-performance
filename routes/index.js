@@ -4,6 +4,7 @@ const multer = require("multer");
 const app = require("express").Router();
 const isAdmin = require("../middleware/isAdmin");
 const Auth = require("../controller/authController");
+const User = require("../controller/usercontroller");
 const Division = require("../controller/divisionController");
 const Dashboard = require("../controller/dashbaordController");
 const Performance = require("../controller/performanceController");
@@ -25,6 +26,7 @@ app.get("/logout", Auth.logout);
 
 app.use(Auth.checkAuth);
 app.use(function (req, res, next) {
+  console.log("req user :", req.user)
   res.locals.session = req.user;
   next();
 });
@@ -47,5 +49,15 @@ app.get("/division/:id/detail", Division.getDetail);
 app.post("/division/create", Division.create);
 app.post("/division/update", Division.update);
 app.delete("/division/delete", Division.destroy);
+
+// USER
+app.use("/user", isAdmin);
+app.get("/user", User.index);
+app.get("/user/datatable", User.dataTable);
+app.get("/user/:id/detail", User.getDetail);
+app.post("/user/create", User.create);
+app.post("/user/update", User.update);
+app.post("/user/import", multerUpload.single("file_csv"), User.importUser);
+app.delete("/user/delete", User.destroy);
 
 module.exports = app;

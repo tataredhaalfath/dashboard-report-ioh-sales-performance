@@ -1,5 +1,7 @@
 const { Division } = require("../models");
 
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 const Validator = require("fastest-validator");
 const v = new Validator();
 module.exports = {
@@ -9,8 +11,11 @@ module.exports = {
 
   dataTable: async (req, res, next) => {
     let where = {};
+
     if (req.query.search["value"]) {
-      where.name = req.query.search["value"];
+      where.name = {
+        [Op.like]: `%${req.query.search["value"]}%`,
+      };
     }
 
     const offsetLimit = {
@@ -89,6 +94,19 @@ module.exports = {
       }
 
       let name = req.body.name;
+      let checkName = await Division.findOne({
+        where: {
+          name,
+        },
+      });
+
+      if (checkName) {
+        return res.status(400).json({
+          status: "error",
+          message: "Nama divisi sudah digunakan",
+        });
+      }
+
       await Division.create({ name });
       return res.json({
         status: "success",
@@ -128,6 +146,24 @@ module.exports = {
         });
       }
 
+      if (division.name !== name) {
+        let checkName = await Division.findOne({
+          where: {
+            name,
+            id: {
+              [Op.not]: division.id
+            }
+          },
+        });
+
+        if (checkName) {
+          return res.status(400).json({
+            status: "error",
+            message: "Nama divisi sudah digunakan",
+          });
+        }
+      }
+
       await division.update({ name });
       return res.json({
         status: "success",
@@ -160,8 +196,8 @@ module.exports = {
       let division = await Division.findOne({ where: { id } });
       if (!division) {
         return res.status(404).json({
-          status: "error",  
-          message: "Data tidak ditasdadsd emukan",
+          status: "error",
+          message: "Data tidak ditemukan",
         });
       }
 

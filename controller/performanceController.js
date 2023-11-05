@@ -56,7 +56,9 @@ module.exports = {
     }
 
     if (req.query.search["value"]) {
-      where.email = req.query.search["value"];
+      where.email = {
+        [Op.like]: `%${req.query.search["value"]}%`,
+      };
     }
 
     const totalData = await Performance.count({
@@ -163,7 +165,7 @@ module.exports = {
 
       return res.json({
         status: "success",
-        message: "sukses",
+        message: "Sukses Import Data Performance",
       });
     } catch (err) {
       return res.status(500).json({
