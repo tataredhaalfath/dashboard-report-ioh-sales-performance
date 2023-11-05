@@ -36,6 +36,8 @@ block content
                 input.form-control#name(type='text' name="name" required placeholder="Masukkan nama divisi")
             .card-footer
               button#save.btn.btn-success.btn-sm(type='submit') Simpan Data
+              button#reset.btn.btn-sm.btn-default(type='reset' style='margin-left : 10px;')
+                span Reset
 
 block script
   // Datatables
@@ -147,6 +149,7 @@ block script
           $("#save").removeAttr("disabled")
           $("#name").val("")
           refreshData();
+          $("#formDivision").trigger("reset")
           showMessage("success", "flaticon-alarm-1", "Sukses", res.message)
         },
         error: function(err) {

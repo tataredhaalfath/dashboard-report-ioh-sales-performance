@@ -8,6 +8,7 @@ const User = require("../controller/usercontroller");
 const Division = require("../controller/divisionController");
 const Dashboard = require("../controller/dashbaordController");
 const Performance = require("../controller/performanceController");
+const Recomendation = require("../controller/recomendationController");
 
 const uploadDir = path.resolve(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -20,13 +21,34 @@ const multerUpload = multer({
   },
 });
 
+const uploadCompletionDir = path.resolve(
+  process.cwd(),
+  "public/assets/completion"
+);
+if (!fs.existsSync(uploadCompletionDir)) {
+  fs.mkdirSync(uploadCompletionDir, { recursive: true });
+}
+const multerUploadCompletion = multer({
+  storage: multer.diskStorage({
+    destination: uploadCompletionDir,
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileName = file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop();
+      cb(null, fileName);
+    },
+  }),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB
+  },
+});
+
 app.get("/login", Auth.index);
 app.post("/login/auth", Auth.userLogin);
 app.get("/logout", Auth.logout);
+app.post("/api/recomendation/create", Recomendation.create);
 
 app.use(Auth.checkAuth);
 app.use(function (req, res, next) {
-  console.log("req user :", req.user)
   res.locals.session = req.user;
   next();
 });
@@ -59,5 +81,16 @@ app.post("/user/create", User.create);
 app.post("/user/update", User.update);
 app.post("/user/import", multerUpload.single("file_csv"), User.importUser);
 app.delete("/user/delete", User.destroy);
+
+// LEARNING PATH RECOMENDATION
+app.get("/recomendation", Recomendation.index);
+app.get("/recomendation/datatable", Recomendation.dataTable);
+app.get("/recomendation/:id/detail", Recomendation.getDetail);
+app.post(
+  "/recomendation/complete",
+  multerUploadCompletion.single("image"),
+  Recomendation.setComplete
+);
+app.post("/recomendation/update-status", Recomendation.updateStatus);
 
 module.exports = app;

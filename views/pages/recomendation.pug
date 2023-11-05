@@ -1,0 +1,198 @@
+extends ../layout
+block content
+  .row
+    .col-md-12#listrecomendation
+      .card
+        .card-header
+          h4.card-title.d-inline Manage Recomendation
+          div.float-right
+            button.btn.btn-mini.btn-info.mr-1(onclick="return refreshData();") Refresh
+        .card-body
+          .table-responsive
+            table#recomendation-datatable.display.table.table-striped.table-hover(cellspacing="0" style="width:100%")
+              thead
+                tru
+                  th Aksi 
+                  th Email
+                  th Url
+                  th Visited
+                  th IsComplete
+              tbody
+
+    .col-md-4.col-sm-12#completion(style="display: none;")
+      .card
+        .card-header
+          .card-head-row
+            h5.card-title#modalTitle Proof of completion 
+            .card-tools
+              button.close(type='button' onClick="return closeForm();")
+                span(aria-hidden='true') ×
+          .modal-body
+            .form-group#proofOfCompletion
+
+    if session.division_id != 1
+      .col-md-4.col-sm-12#formEditable(style="display: none;" data-action="add")
+        .card
+          .card-header
+            .card-head-row
+              h5.card-title Upload Proof Of Completion
+              .card-tools
+                button.close(type='button' onClick="return closeForm();")
+                  span(aria-hidden='true') ×
+          form#formCompletion
+            .modal-body
+              input#id(type="hidden")
+              .form-group
+                label(for='image') Upload Bukti Completion
+                input.form-control#image(type='file' name="image" required placeholder='Upload Bukti Menyelesaikan Learning Path')
+            .card-footer
+              button#saveCompletion.btn.btn-success.btn-sm(type='submit') Simpan Data
+              button#reset.btn.btn-sm.btn-default(type='reset' style='margin-left : 10px;')
+                span Reset
+
+block script
+  // Datatables
+  script(src='/assets/js/plugin/datatables/datatables.min.js')
+  script.
+    let dTable;
+    $(function(){
+      dataTable()
+    })
+
+    function refreshData() {
+      dTable.ajax.reload(null, false)
+    }
+
+    function dataTable(){
+      let url = "/recomendation/datatable"
+
+      dTable = $('#recomendation-datatable').DataTable({
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        responsive: true,
+        processing: true,
+        serverSide: true,
+        searchDelay: 1000,
+        paging: true,
+        lengthMenu: [5, 10, 50],
+        pageLength: [10],
+        order: [[1, "desc"]],
+        ajax: url,
+        columns: [{
+          data: "action",
+          width: "100px"
+          },
+          {
+            data : "email"
+          },
+          {
+            data : "url"
+          },
+          {
+            data : "visited"
+          },
+          {
+            data : "completed"
+          },
+        ],
+        "pageLength": 10
+        })
+    }
+
+    function closeForm(){
+      $("#listrecomendation").removeClass("col-md-8").addClass("col-md-12")
+      $("#formEditable").trigger("reset")
+      $("#formEditable").hide()
+      $("#completion").hide()
+      $("#proofOfCompletion").empty()
+    }
+
+    function getData(id, action) {
+      $.ajax({
+        url: `/recomendation/${id}/detail`,
+        method: "GET",
+        dataType: "json",
+        success: function(res) {
+          $("#formEditable").trigger("reset")
+          $("#proofOfCompletion").empty()
+          let d = res.data; 
+          if(action == "update" || action == "add"){
+            $("#completion").hide()
+            $("#formEditable").attr("data-action", action).fadeIn(200, function() {
+              $("#listrecomendation").removeClass("col-md-12").addClass("col-md-8");
+              $("#id").val(d.id);
+            })
+          }else{
+            $("#completion").fadeIn(200, function() {
+              $("#listrecomendation").removeClass("col-md-12").addClass("col-md-8");
+              $("#proofOfCompletion").append(d.image)
+              $("#formEditable").hide()
+            })
+          }
+        },
+        error: function(err) {
+          console.log("error :", err);
+          showMessage("warning", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message);
+        }
+      })
+    }
+
+    $("#formEditable form").submit(function(e) {
+      e.preventDefault();
+      let image = document.getElementById("image").files[0]
+      let formData = new FormData()
+      formData.append("id", $("#id").val())
+      formData.append("image", image)
+      $("#saveCompletion").attr("disabled", true);
+      saveData(formData, $("#formEditable").attr("data-action"));
+      return false;
+    });
+
+    function saveData(data, action) {
+      $("#save").attr("disabled", true)
+      $.ajax({
+        url: "/recomendation/complete",
+        method: "POST",
+        data: data,
+          processData: false,
+        contentType: false,
+        beforeSend: function() {
+          console.log("Loading...")
+        },
+        success: function(res) {
+          $("#saveCompletion").removeAttr("disabled")
+          showMessage("success", "flaticon-alarm-1", "Sukses", res.message)
+          refreshData();
+          closeForm()
+        },
+        error: function(err) {
+          $("#saveCompletion").removeAttr("disabled")
+          console.log("error :", err);
+          showMessage("danger", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message)
+        }
+      })
+    }
+
+    function updateStatus(id){
+      $.ajax({
+        url: "/recomendation/update-status",
+        method: "POST",
+        data: {
+          id
+        },
+        beforeSend: function() {
+          console.log("Loading...")
+        },
+        success: function(res) {
+          refreshData()
+          console.log("Status updated")
+        },
+        error: function(err) {
+          console.log("error :", err);
+        }
+      })
+    }
+

@@ -4,7 +4,7 @@ block content
     .col-md-12#listuser
       .card
         .card-header
-          h4.card-title.d-inline Manage Performance
+          h4.card-title.d-inline Manage User
             div.float-right
               button.btn.btn-sm.btn-info.mr-1(onclick="return refreshData();") Refresh
               if session.division_id == 1
@@ -46,11 +46,13 @@ block content
           form#formImportUser
             .modal-body
               .form-group
-                label(for='salesPerformance') Upload Data User
-                input.form-control#fileCsv(type='file' name="salesPerformance" required placeholder='Upload File CSV')
+                label(for='user') Upload Data User
+                input.form-control#fileCsv(type='file' name="user" required placeholder='Upload File CSV')
                 small.text-danger Format File harus CSV
             .card-footer
               button#saveImport.btn.btn-success.btn-sm(type='submit') Simpan Data
+              button#reset.btn.btn-sm.btn-default(type='reset' style='margin-left : 10px;')
+                span Reset
 
       .col-md-4.col-sm-12#formEditable(style="display: none;" data-action="add")
         .card
@@ -77,6 +79,8 @@ block content
                     option(value=d.id)= d.name
             .card-footer
               button#save.btn.btn-success.btn-sm(type='submit') Simpan Data
+              button#reset.btn.btn-sm.btn-default(type='reset' style='margin-left : 10px;')
+                span Reset
 
 
 block script

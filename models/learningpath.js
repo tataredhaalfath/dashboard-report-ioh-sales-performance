@@ -10,6 +10,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    status: {
+      type: DataTypes.BOOLEAN, // status that link is visited
+      defaultValue: false,
+    },
+    image: {
+      type: DataTypes.STRING,
+    },
   });
 
   Learningpath.associate = (models) => {
