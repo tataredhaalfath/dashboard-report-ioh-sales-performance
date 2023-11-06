@@ -55,7 +55,7 @@ module.exports = {
       where.email = email;
     }
 
-    if (req.query.search["value"]) {
+    if (req.user.division_id == 1 && req.query.search["value"]) {
       where.email = {
         [Op.like]: `%${req.query.search["value"]}%`,
       };
@@ -89,13 +89,20 @@ module.exports = {
     }).then((result) => {
       result = JSON.parse(JSON.stringify(result));
       let output = result.map((item) => {
-        let action = `<div class='dropdown-primary dropdown open'>
+        let action =
+          req.user.division_id == 1
+            ? `<div class='dropdown-primary dropdown open'>
                           <button class='btn btn-sm btn-primary dropdown-toggle waves-effect waves-light' id='dropdown-${item.id}' data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                               Aksi
                           </button>
                           <div class='dropdown-menu' aria-labelledby="dropdown-${item.id}" data-dropdown-out='fadeOut'>
                               <a class='dropdown-item' onclick='return removeData("${item.id}");' href='javascript:void(0)' title='Remove'>Hapus</a>
                           </div>
+                      </div>`
+            : `<div class='dropdown-primary dropdown open'>
+                          <button class='btn btn-sm btn-primary dropdown-toggle waves-effect waves-light' id='dropdown-${item.id}' data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                              Aksi
+                          </button>
                       </div>`;
         item.average = `${item.average}%`;
         item.performance_score = `${item.performance_score}%`;

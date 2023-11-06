@@ -1,0 +1,201 @@
+extends ../layout
+
+block content
+  .row
+    .col-md-12
+      .card
+        .card-header
+          h4.card-title Sales Performance
+        .card-body
+          .row
+            div.col-12.mt-10.mb-3
+              form#searchField(autocomplete="off")
+                div.row
+                  if session.division_id == 1
+                    div.col-md-3.col-lg-2.col-xs-12
+                      select.form-control#division
+                        option(value="all") Pilih Divisi
+                        each d in divisions
+                          option(value=d.id)= d.name
+                    div.col-md-3.col-lg-2.col-xs-12
+                      select.form-control#email
+                        option(value="all") Pilih Email
+                  div.col-md-3.col-lg-2.col-xs-12
+                    button(type="submit").btn.btn-sm.btn-primary.mt-1 Submit
+          .row
+            if session.division_id == 1
+              .col-md-8
+                .card
+                  .card-header
+                    .card-title Line Chart
+                  .card-body
+                    .chart-container
+                      canvas#lineChart
+              .col-md-4
+                .card
+                  .card-header
+                    .row
+                      .col-6 
+                        .card-title Bar Chart
+                        small Self Performance VS Division Performance
+                      .col-6 
+                        select.form-control#filterMonth(onchange="changeMonth()")
+                          option(value="all") Pilih Bulan
+                          each m in monthList
+                            option(value=m.id)= m.name
+                  .card-body
+                    .chart-container
+                      canvas#barChart
+
+
+block script
+  script(src="/assets/js/plugin/chart.js/chart.min.js") 
+  script.
+    let divisionId = '#{divisionId}'
+    let division;
+    let email;
+    $("#division").change(function(){
+      division = $("#division").val()
+      $('#email').empty()
+      if(division != "all"){
+        $.ajax({
+          url: `/sales-performance/get-users?division=${division}`,
+          method: "GET",
+          dataType: "json",
+          success: function(res) {
+            $('#email').append($('<option>', {
+              value: "all",
+              text: "Pilih Email"
+            }));
+            $.each(res.data, function(index, option) {
+              $('#email').append($('<option>', {
+                value: option.email,
+                text: option.email
+              }));
+            })
+          },
+          error: function(err) {
+            console.log("error :", err);
+            showMessage("warning", "flaticon-error", "Peringatan", err.message || err.responseJSON
+              ?.message);
+          }
+        })
+      }
+    })
+
+    $("#email").change(function(){
+      email = $("#email").val()
+    })
+
+    $("#searchField").submit(function(){
+      if(divisionId == 1){
+        loadBarChart()
+        loadLineChart()
+      }
+      return false
+    })
+
+    function changeMonth(){
+      if(divisionId == 1 && email != "all"){
+        loadBarChart($("#filterMonth").val())
+      }
+    }
+
+    let letmyLineChart,myBarChart
+
+    if(divisionId == 1){
+      let lineChart = document.getElementById('lineChart').getContext('2d')
+      myLineChart = new Chart(lineChart, {
+        type: 'line',
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          datasets: []
+        },
+        options : {
+          responsive: true, 
+          maintainAspectRatio: false,
+          legend: {
+            position: 'bottom',
+            labels : {
+              padding: 10,
+              fontColor: '#1d7af3',
+            }
+          },
+          tooltips: {
+            bodySpacing: 4,
+            mode:"nearest",
+            intersect: 0,
+            position:"nearest",
+            xPadding:10,
+            yPadding:10,
+            caretPadding:10
+          },
+          layout:{
+            padding:{left:15,right:15,top:15,bottom:15}
+          }
+        }
+      });
+      let barChart = document.getElementById('barChart').getContext('2d')
+      myBarChart = new Chart(barChart, {
+        type: 'bar',
+        data: {
+          labels: ["Me", "Division"],
+          datasets : [],
+        },
+        options: {
+          responsive: true, 
+          maintainAspectRatio: false,
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero:true
+              }
+            }]
+          },
+        }
+      });
+    }
+
+
+    function loadLineChart(){
+      $.ajax({
+        url:`/sales-performance/line-chart?email=${email}`,
+        method: "GET",
+        dataType: "json",
+        success: function(res){
+          res.datasets.forEach((dataset) => {
+            myLineChart.data.datasets.push(dataset);
+          });
+          myLineChart.update();
+        },
+        error: function(err){
+          console.log("error :", err.message)
+          err.datasets.forEach((dataset) => {
+            myLineChart.data.datasets.push(dataset);
+          });
+          myLineChart.update();
+        }
+      })
+    }
+
+    function loadBarChart(monthId = "all"){
+      $.ajax({
+        url:`/sales-performance/bar-chart?month=${monthId}&email=${email}`,
+        method: "GET",
+        dataType: "json",
+        success: function(res){
+          res.datasets.forEach((dataset) => {
+            myBarChart.data.datasets.pop()
+            myBarChart.data.datasets.push(dataset);
+          });
+          myBarChart.update();
+        },
+        error: function(err){
+          console.log("error :", err.message)
+          err.datasets.forEach((dataset) => {
+            myBarChart.data.datasets.push(dataset);
+          });
+          myBarChart.update();
+        }
+      })
+    }

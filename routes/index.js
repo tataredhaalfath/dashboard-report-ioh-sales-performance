@@ -9,6 +9,7 @@ const Division = require("../controller/divisionController");
 const Dashboard = require("../controller/dashbaordController");
 const Performance = require("../controller/performanceController");
 const Recomendation = require("../controller/recomendationController");
+const SalesPerformance = require("../controller/salesPerformanceController");
 
 const uploadDir = path.resolve(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -61,8 +62,8 @@ app.use(function (req, res, next) {
 app.get("/", Dashboard.index);
 app.get("/stat/multiline-chart", Dashboard.multipleLineChart);
 app.get("/stat/line-chart", Dashboard.lineChart);
-app.get("/stat/piechart", Dashboard.pieChart);
-app.get("/stat/barchart", Dashboard.barChart);
+app.get("/stat/pie-chart", Dashboard.pieChart);
+app.get("/stat/bar-chart", Dashboard.barChart);
 
 //PERFORMANCE
 app.get("/performance", Performance.index);
@@ -92,6 +93,13 @@ app.post("/user/create", User.create);
 app.post("/user/update", User.update);
 app.post("/user/import", multerUpload.single("file_csv"), User.importUser);
 app.delete("/user/delete", User.destroy);
+
+// SALES PERFORMANCE
+app.use("/sales-performance", isAdmin);
+app.get("/sales-performance", SalesPerformance.index);
+app.get("/sales-performance/get-users", SalesPerformance.getUsers);
+app.get("/sales-performance/line-chart", SalesPerformance.lineChart);
+app.get("/sales-performance/bar-chart", SalesPerformance.barChart);
 
 // LEARNING PATH RECOMENDATION
 app.get("/recomendation", Recomendation.index);

@@ -1,4 +1,4 @@
-const { Performance } = require("../models");
+const { Division, User, Performance } = require("../models");
 const moment = require("moment");
 const _ = require("lodash");
 const Sequelize = require("sequelize");
@@ -8,6 +8,7 @@ module.exports = {
   index: async (req, res, next) => {
     let divisionId = req.user.division_id;
     const currentMonth = moment().format("MMMM");
+    let divisions = await Division.findAll({ attributes: ["id", "name"] });
 
     const monthList = [];
     for (let i = 0; i < 12; i++) {
@@ -19,95 +20,33 @@ module.exports = {
       monthList.push(monthData);
     }
 
-    res.render("pages/dashboard", {
-      title: "Main Dashboard",
+    res.render("pages/salesperformance", {
+      title: "Performa Sales",
       divisionId,
       currentMonth,
       monthList,
+      divisions,
     });
   },
 
-  multipleLineChart: async (req, res, next) => {
+  getUsers: async (req, res, next) => {
     try {
-      const performances = await Performance.findAll({
-        attributes: ["position", "performance_score", "createdAt"],
+      let division = req.query.division;
+      let users = await User.findAll({
+        attributes: ["id", "email"],
+        where: {
+          division_id: division,
+        },
       });
 
-      const monthlyScores = {};
-
-      performances.forEach((performance) => {
-        const position = performance.position;
-        const score = performance.performance_score;
-        const createdAt = moment(performance.createdAt).format("YYYY-MM");
-
-        if (!monthlyScores[position]) {
-          monthlyScores[position] = {};
-        }
-
-        if (!monthlyScores[position][createdAt]) {
-          monthlyScores[position][createdAt] = [];
-        }
-
-        monthlyScores[position][createdAt].push(score);
-      });
-
-      const result = [];
-
-      for (const position in monthlyScores) {
-        const data = [];
-
-        for (let i = 0; i < 12; i++) {
-          const month = moment().month(i).format("YYYY-MM");
-          const scores = monthlyScores[position][month] || [];
-          let averageScore =
-            scores.reduce((sum, score) => sum + score, 0) / scores.length;
-          if (averageScore > 0) {
-            averageScore = parseFloat(averageScore.toFixed(2)).toFixed(2);
-          }
-          data.push(averageScore || 0);
-        }
-        result.push({
-          label: position,
-          data: data,
-        });
-      }
-
-      let colors = [
-        "#1d7af3",
-        "#59d05d",
-        "#f3545d",
-        "#faedbe",
-        "#1D7AF3",
-        "#9C2AED",
-        "#F8B41E",
-        "#4E6F5C",
-        "#D32E5E",
-      ];
-
-      let datasets = result.map((item) => {
-        let color = _.sample(colors);
-        return {
-          borderColor: color,
-          pointBorderColor: "#FFF",
-          pointBackgroundColor: color,
-          pointBorderWidth: 2,
-          pointHoverRadius: 4,
-          pointHoverBorderWidth: 1,
-          pointRadius: 4,
-          backgroundColor: "transparent",
-          fill: true,
-          borderWidth: 2,
-          ...item,
-        };
-      });
       return res.json({
         status: "success",
-        datasets,
+        data: users,
       });
     } catch (error) {
       return res.json({
         status: "error",
-        datasets: [],
+        data: [],
         message: error.message,
       });
     }
@@ -115,7 +54,14 @@ module.exports = {
 
   lineChart: async (req, res, next) => {
     try {
-      const email = req.user.email;
+      const email = req.query.email;
+      if (!email) {
+        return res.json({
+          status: "error",
+          datasets: [],
+          message: "email undefined",
+        });
+      }
 
       const performances = await Performance.findAll({
         attributes: ["performance_score", "createdAt"],
@@ -188,146 +134,6 @@ module.exports = {
     }
   },
 
-  pieChart: async (req, res, next) => {
-    try {
-      const currentDate = moment().startOf("month");
-
-      let month = req.query.month;
-
-      let filterMonth = {
-        createdAt: {
-          [Op.gte]: moment(currentDate)
-            .utc()
-            .add(7, "hours")
-            .startOf("month")
-            .toDate(),
-          [Op.lt]: moment(currentDate)
-            .utc()
-            .add(7, "hours")
-            .endOf("month")
-            .toDate(),
-        },
-      };
-
-      if (month && month != "all") {
-        month = parseInt(month);
-        const currentYear = moment().year();
-
-        const startDate = moment()
-          .year(currentYear)
-          .month(month - 1)
-          .utc()
-          .add(7, "hours")
-          .startOf("month")
-          .toDate();
-        const endDate = moment()
-          .year(currentYear)
-          .month(month - 1)
-          .utc()
-          .add(7, "hours")
-          .endOf("month")
-          .toDate();
-
-        filterMonth = {
-          createdAt: {
-            [Op.gte]: startDate,
-            [Op.lt]: endDate,
-          },
-        };
-      }
-
-      const performances = await Performance.findAll({
-        attributes: ["position", "performance_score"],
-        where: {
-          ...filterMonth,
-        },
-      });
-
-      if (!performances.length) {
-        return res.json({
-          status: "error",
-          datasets: [
-            {
-              data: [],
-              backgroundColor: [],
-              borderWidth: 0,
-            },
-          ],
-          labels: [],
-        });
-      }
-
-      const positionScores = {};
-      const labels = [];
-
-      performances.forEach((performance) => {
-        const position = performance.position;
-        const score = performance.performance_score;
-
-        if (!positionScores[position]) {
-          positionScores[position] = [];
-          labels.push(position);
-        }
-        positionScores[position].push(score);
-      });
-
-      const averageScores = labels.map((position) => {
-        const scores = positionScores[position];
-        let averageScore =
-          scores.length > 0
-            ? scores.reduce((sum, score) => sum + score, 0) / scores.length
-            : 0;
-
-        if (averageScore > 0) {
-          averageScore = parseFloat(averageScore.toFixed(2)).toFixed(2);
-        }
-
-        return averageScore;
-      });
-
-      let colors = [
-        "#1d7af3",
-        "#59d05d",
-        "#f3545d",
-        "#faedbe",
-        "#1D7AF3",
-        "#9C2AED",
-        "#F8B41E",
-        "#4E6F5C",
-        "#D32E5E",
-      ];
-      let color = labels.map(() => {
-        return _.sample(colors);
-      });
-      let datasets = [
-        {
-          data: averageScores,
-          backgroundColor: color,
-          borderWidth: 0,
-        },
-      ];
-
-      res.json({
-        status: "success",
-        datasets,
-        labels,
-      });
-    } catch (error) {
-      return res.json({
-        status: "error",
-        datasets: [
-          {
-            data: [],
-            backgroundColor: [],
-            borderWidth: 0,
-          },
-        ],
-        labels: [],
-        message: error.message,
-      });
-    }
-  },
-
   barChart: async (req, res, next) => {
     try {
       const currentDate = moment().startOf("month");
@@ -376,7 +182,7 @@ module.exports = {
         };
       }
 
-      let email = req.user.email;
+      let email = req.query.email;
       let ownPerformance = await Performance.findOne({
         attributes: [
           [Sequelize.fn("AVG", Sequelize.col("performance_score")), "average"],

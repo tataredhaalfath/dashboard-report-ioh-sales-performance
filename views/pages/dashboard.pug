@@ -8,58 +8,58 @@ block content
           h4.card-title Dashboard
         .card-body
           p Statistik Performance
-        .row 
-          if session.division_id == 1
-            .col-md-8
-              .card
-                .card-header
-                  .card-title Multiple Line Chart
-                  small Performance Per Division
-                .card-body
-                  .chart-container
-                    canvas#multipleLineChart
-            .col-md-4
-              .card
-                .card-header
-                  .card-title Pie Chart
+          .row 
+            if session.division_id == 1
+              .col-md-8
+                .card
+                  .card-header
+                    .card-title Multiple Line Chart
+                    small Performance Per Division
+                  .card-body
+                    .chart-container
+                      canvas#multipleLineChart
+              .col-md-4
+                .card
+                  .card-header
+                    .card-title Pie Chart
+                      .row
+                        .col-6
+                          small Performance Per Division 
+                          br
+                          small#currentMonth (Bulan #{currentMonth})
+                        .col-6 
+                          select.form-control#filterMonth(onchange="changeMonth()")
+                            option(value="all") Pilih Bulan
+                            each m in monthList
+                              option(value=m.id)= m.name
+
+                  .card-body
+                    .chart-container
+                      canvas#pieChart(style='width: 50%; height: 50%')
+
+            if session.division_id != 1
+              .col-md-8
+                .card
+                  .card-header
+                    .card-title Line Chart
+                  .card-body
+                    .chart-container
+                      canvas#lineChart
+              .col-md-4
+                .card
+                  .card-header
                     .row
-                      .col-6
-                        small Performance Per Division 
-                        br
-                        small#currentMonth (Bulan #{currentMonth})
                       .col-6 
-                        select.form-control#filterMonth(onchange="changeMonth()")
+                        .card-title Bar Chart
+                        small Self Performance VS Division Performance
+                      .col-6 
+                        select.form-control#userFilterMonth(onchange="userChangeMonth()")
                           option(value="all") Pilih Bulan
                           each m in monthList
                             option(value=m.id)= m.name
-
-                .card-body
-                  .chart-container
-                    canvas#pieChart(style='width: 50%; height: 50%')
-
-          if session.division_id != 1
-            .col-md-8
-              .card
-                .card-header
-                  .card-title Line Chart
-                .card-body
-                  .chart-container
-                    canvas#lineChart
-            .col-md-4
-              .card
-                .card-header
-                  .row
-                    .col-6 
-                      .card-title Bar Chart
-                      small Self Performance VS Division Performance
-                    .col-6 
-                      select.form-control#userFilterMonth(onchange="userChangeMonth()")
-                        option(value="all") Pilih Bulan
-                        each m in monthList
-                          option(value=m.id)= m.name
-                .card-body
-                  .chart-container
-                    canvas#barChart
+                  .card-body
+                    .chart-container
+                      canvas#barChart
 
 
 block script
@@ -228,7 +228,7 @@ block script
 
     function loadPieChart(month = "all"){
       $.ajax({
-        url:`/stat/piechart?month=${month}`,
+        url:`/stat/pie-chart?month=${month}`,
         method: "GET",
         dataType: "json",
         success: function(res){
@@ -285,7 +285,7 @@ block script
 
     function loadBarChart(monthId = "all"){
       $.ajax({
-        url:`/stat/barchart?month=${monthId}`,
+        url:`/stat/bar-chart?month=${monthId}`,
         method: "GET",
         dataType: "json",
         success: function(res){

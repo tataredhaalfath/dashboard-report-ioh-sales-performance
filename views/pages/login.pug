@@ -37,13 +37,11 @@ script.
   $(document).ready(function() {
 
     $('#login').on("submit", function(e){
-      console.log("login")
       e.preventDefault()
       let payload = {
         email: $('#email').val(),
         password: $('#password').val()
       }
-      console.log("payload :", payload)
 
       $.ajax({
         url: '/login/auth',
