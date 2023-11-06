@@ -91,9 +91,9 @@ module.exports = {
           : `<button class='badge badge-warning' >
                 UnCompleted
             </button>`;
-        if(req.user.division_id == 1){
+        if (req.user.division_id == 1) {
           item.url = `<p>${item.url}</p>`;
-        }else{
+        } else {
           item.url = `<a href="${item.url}" target="_blank" onClick="updateStatus(${item.id})">${item.url}</a>`;
         }
         item.visited =
@@ -130,7 +130,9 @@ module.exports = {
         });
       }
 
-      recomendation.image = `<img src='/assets/completion/${recomendation.image}' class='img img-thumbnail' width="100%">`;
+      recomendation.image = recomendation.image
+        ? `<img src='/assets/completion/${recomendation.image}' class='img img-thumbnail' width="100%">`
+        : "";
       return res.json({
         status: "success",
         data: recomendation,
