@@ -232,8 +232,8 @@ block script
         method: "GET",
         dataType: "json",
         success: function(res){
-          myPieChart.data.datasets.pop()
-          myPieChart.data.labels.pop()
+          myPieChart.data.datasets = []
+          myPieChart.data.labels = []
           res.datasets.forEach((dataset) => {
             myPieChart.data.datasets.push(dataset);
           });
@@ -290,7 +290,7 @@ block script
         dataType: "json",
         success: function(res){
           res.datasets.forEach((dataset) => {
-            myBarChart.data.datasets.pop()
+            myBarChart.data.datasets = []
             myBarChart.data.datasets.push(dataset);
           });
           myBarChart.update();

@@ -5,6 +5,7 @@ const app = require("express").Router();
 const isAdmin = require("../middleware/isAdmin");
 const Auth = require("../controller/authController");
 const User = require("../controller/usercontroller");
+const Setting = require("../controller/settingController");
 const Division = require("../controller/divisionController");
 const Dashboard = require("../controller/dashbaordController");
 const Performance = require("../controller/performanceController");
@@ -111,5 +112,9 @@ app.post(
   Recomendation.setComplete
 );
 app.post("/recomendation/update-status", Recomendation.updateStatus);
+
+// SETTINGS
+app.get("/setting", Setting.index);
+app.post("/setting/account/update", Setting.update);
 
 module.exports = app;

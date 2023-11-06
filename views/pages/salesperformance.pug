@@ -37,7 +37,7 @@ block content
                     .row
                       .col-6 
                         .card-title Bar Chart
-                        small Self Performance VS Division Performance
+                        small Sales Performance VS Division Performance
                       .col-6 
                         select.form-control#filterMonth(onchange="changeMonth()")
                           option(value="all") Pilih Bulan
@@ -139,7 +139,7 @@ block script
       myBarChart = new Chart(barChart, {
         type: 'bar',
         data: {
-          labels: ["Me", "Division"],
+          labels: ["Sales", "Division"],
           datasets : [],
         },
         options: {
@@ -185,7 +185,7 @@ block script
         dataType: "json",
         success: function(res){
           res.datasets.forEach((dataset) => {
-            myBarChart.data.datasets.pop()
+            myBarChart.data.datasets = []
             myBarChart.data.datasets.push(dataset);
           });
           myBarChart.update();

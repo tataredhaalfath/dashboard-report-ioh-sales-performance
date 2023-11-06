@@ -12,7 +12,7 @@ module.exports = {
     let divisions = await Division.findAll({ attributes: ["id", "name"] });
 
     return res.render("pages/recomendation", {
-      title: "Lerning Path Recomendation",
+      title: "Learning Path Recomendation",
       divisions,
     });
   },

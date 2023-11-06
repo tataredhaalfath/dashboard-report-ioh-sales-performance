@@ -1,0 +1,30 @@
+{
+    "name": "Sales Performance",
+    "short_name": "Sales Performance",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "/assets/images/logo/150x150.png",
+            "sizes": "150x150",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/images/logo/192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/images/logo/512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/images/logo/1000x1000.png",
+            "sizes": "1000x1000",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#1572E8",
+    "background_color": "#1572E8",
+    "display": "standalone"
+}

@@ -1,0 +1,90 @@
+extends ../layout
+block styles 
+  //- link(rel='stylesheet' type='text/css' href='/assets/pages/advance-elements/css/bootstrap-datetimepicker.css')
+
+block content
+  .row
+    .col-md-6.col-sm-12#formEditable( data-action="update")
+      .card
+        .card-header
+          .card-head-row
+            h5.card-title#modalTitle Setting Account
+        form#formSetting
+          .modal-body
+            .form-group
+              label(for='email') Email
+              input.form-control#email(type='email' name="email" readonly value=email)
+            .form-group
+              label(for='division') Divisi
+              input.form-control#division(type='text' name="division" value=division readonly)
+            .form-group
+              label(for='password') Password Lama
+              input.form-control#password(type='password' name="password" required placeholder="Password Lama")
+            .form-group
+              label(for='newPassword') Password Baru
+              input.form-control#newPassword(type='password' name="newPassword" required placeholder="Password Baru")
+            .form-group
+              label(for='confirmPassword') Password Konfirmasi
+              input.form-control#confirmPassword(type='password' name="confirmPassword" required placeholder="Password Konfirmasi")
+          .card-footer
+            button#save.btn.btn-success.btn-sm(type='submit') Simpan Data
+
+block script
+  // Datatables
+  script(src='/assets/js/plugin/datatables/datatables.min.js')
+  script.
+    $("#formEditable form").submit(function(e) {
+      e.preventDefault();
+      let dataToSend = {
+        password: $("#password").val(),
+        newPassword: $("#newPassword").val(),
+        confirmPassword: $("#confirmPassword").val(),
+      }
+
+      console.log("datatosend :", dataToSend)
+
+      if(dataToSend.newPassword.length < 5){
+        showMessage("danger", "flaticon-error", "Peringatan", "Password Baru minimal 5 Karakter")
+        return false
+      }
+
+      if(dataToSend.newPassword != dataToSend.confirmPassword){
+        showMessage("danger", "flaticon-error", "Peringatan", "Password Konfirmasi harus sama dengan Password Baru")
+        return false 
+      }
+
+      let c = confirm("Ubah data akun ?")
+      if(c){
+        saveData(dataToSend);
+      }
+
+      return false;
+    });
+
+    function saveData(data, action) {
+      $("#save").attr("disabled", true)
+      $.ajax({
+        url: "/setting/account/update", 
+        method: "POST",
+        data: data,
+        header: {
+          'Content-Type' : 'application/json'
+        },
+        beforeSend: function() {
+          console.log("Loading...")
+        },
+        success: function(res) {
+          $("#save").removeAttr("disabled")
+          $("#password").val("")
+          $("#newPassword").val("")
+          $("#confirmPassword").val("")
+          showMessage("success", "flaticon-alarm-1", "Sukses", res.message)
+        },
+        error: function(err) {
+          $("#save").removeAttr("disabled")
+          console.log("error :", err);
+          showMessage("danger", "flaticon-error", "Peringatan", err.message || err.responseJSON
+            ?.message)
+        }
+      })
+    }
