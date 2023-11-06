@@ -23,14 +23,25 @@ module.exports = {
     }
 
     if (division && division != "all") {
-      whereDivision.name = division;
+      whereDivision.name = {
+        [Op.like]: `%${division}%`,
+      };
     }
 
     const offsetLimit = {
       offset: parseInt(req.query.start),
       limit: parseInt(req.query.length),
     };
-    const totalData = await User.count();
+
+    const totalData = await User.count({
+      where,
+      include: {
+        model: Division,
+        where: {
+          ...whereDivision,
+        },
+      },
+    });
     User.findAll({
       ...offsetLimit,
       attributes: ["id", "email"],
@@ -38,7 +49,9 @@ module.exports = {
       include: {
         attributes: ["id", "name"],
         model: Division,
-        ...whereDivision,
+        where: {
+          ...whereDivision,
+        },
       },
       order: [["id", "desc"]],
     }).then((result) => {

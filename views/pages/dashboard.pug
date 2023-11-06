@@ -7,4 +7,300 @@ block content
         .card-header
           h4.card-title Dashboard
         .card-body
-          p Welcome to #{title}
+          p Statistik Performance
+        .row 
+          if session.division_id == 1
+            .col-md-8
+              .card
+                .card-header
+                  .card-title Multiple Line Chart
+                  small Performance Per Division
+                .card-body
+                  .chart-container
+                    canvas#multipleLineChart
+            .col-md-4
+              .card
+                .card-header
+                  .card-title Pie Chart
+                    .row
+                      .col-6
+                        small Performance Per Division 
+                        br
+                        small#currentMonth (Bulan #{currentMonth})
+                      .col-6 
+                        select.form-control#filterMonth(onchange="changeMonth()")
+                          option(value="all") Pilih Bulan
+                          each m in monthList
+                            option(value=m.id)= m.name
+
+                .card-body
+                  .chart-container
+                    canvas#pieChart(style='width: 50%; height: 50%')
+
+          if session.division_id != 1
+            .col-md-8
+              .card
+                .card-header
+                  .card-title Line Chart
+                .card-body
+                  .chart-container
+                    canvas#lineChart
+            .col-md-4
+              .card
+                .card-header
+                  .row
+                    .col-6 
+                      .card-title Bar Chart
+                      small Self Performance VS Division Performance
+                    .col-6 
+                      select.form-control#userFilterMonth(onchange="userChangeMonth()")
+                        option(value="all") Pilih Bulan
+                        each m in monthList
+                          option(value=m.id)= m.name
+                .card-body
+                  .chart-container
+                    canvas#barChart
+
+
+block script
+  script(src="/assets/js/plugin/chart.js/chart.min.js") 
+  script.
+    let divisionId = '#{divisionId}'
+    $("#monthList").change(function(){
+    })
+
+    function changeMonth(){
+      if(divisionId == 1){
+        loadPieChart($("#filterMonth").val())
+      }
+    }
+
+    function userChangeMonth(){
+      if(divisionId !== 1){
+        loadBarChart($("#userFilterMonth").val())
+      }
+    }
+    let myMultipleLineChart, myPieChart, myLineChart,myBarChart
+
+    if(divisionId == 1){
+      let multipleLineChart = document.getElementById('multipleLineChart').getContext('2d')
+      myMultipleLineChart = new Chart(multipleLineChart, {
+        type: 'line',
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          datasets: []
+        },
+        options : {
+          responsive: true, 
+          maintainAspectRatio: false,
+          legend: {
+            position: 'top',
+          },
+          tooltips: {
+            bodySpacing: 4,
+            mode:"nearest",
+            intersect: 0,
+            position:"nearest",
+            xPadding:10,
+            yPadding:10,
+            caretPadding:10
+          },
+          layout:{
+            padding:{left:15,right:15,top:15,bottom:15}
+          }
+        }
+      });
+
+      let pieChart = document.getElementById('pieChart').getContext('2d')
+      myPieChart = new Chart(pieChart, {
+        type: 'pie',
+        data: {
+          datasets: [],
+          labels: [] 
+        },
+        options : {
+          responsive: true, 
+          maintainAspectRatio: false,
+          legend: {
+            position : 'bottom',
+            labels : {
+              fontColor: 'rgb(154, 154, 154)',
+              fontSize: 11,
+              usePointStyle : true,
+              padding: 20
+            }
+          },
+          pieceLabel: {
+            render: 'percentage',
+            fontColor: 'white',
+            fontSize: 14,
+          },
+          tooltips: false,
+          layout: {
+            padding: {
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: 20
+            }
+          }
+        }
+      })
+      
+      loadMultipleLineChart()
+      loadPieChart()
+    }else{
+      let lineChart = document.getElementById('lineChart').getContext('2d')
+      myLineChart = new Chart(lineChart, {
+        type: 'line',
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          datasets: []
+        },
+        options : {
+          responsive: true, 
+          maintainAspectRatio: false,
+          legend: {
+            position: 'bottom',
+            labels : {
+              padding: 10,
+              fontColor: '#1d7af3',
+            }
+          },
+          tooltips: {
+            bodySpacing: 4,
+            mode:"nearest",
+            intersect: 0,
+            position:"nearest",
+            xPadding:10,
+            yPadding:10,
+            caretPadding:10
+          },
+          layout:{
+            padding:{left:15,right:15,top:15,bottom:15}
+          }
+        }
+      });
+      let barChart = document.getElementById('barChart').getContext('2d')
+      myBarChart = new Chart(barChart, {
+        type: 'bar',
+        data: {
+          labels: ["Me", "Division"],
+          datasets : [],
+        },
+        options: {
+          responsive: true, 
+          maintainAspectRatio: false,
+          scales: {
+            yAxes: [{
+              ticks: {
+                beginAtZero:true
+              }
+            }]
+          },
+        }
+      });
+
+      loadLineChart()
+      loadBarChart()
+    }
+
+    function loadMultipleLineChart(){
+      $.ajax({
+        url:"/stat/multiline-chart",
+        method: "GET",
+        dataType: "json",
+        success: function(res){
+          res.datasets.forEach((dataset) => {
+            myMultipleLineChart.data.datasets.push(dataset);
+          });
+          myMultipleLineChart.update();
+        },
+        error: function(err){
+          console.log("error :", err.message)
+          err.datasets.forEach((dataset) => {
+            myMultipleLineChart.data.datasets.push(dataset);
+          });
+          myMultipleLineChart.update();
+        }
+      })
+    }
+
+    function loadPieChart(month = "all"){
+      $.ajax({
+        url:`/stat/piechart?month=${month}`,
+        method: "GET",
+        dataType: "json",
+        success: function(res){
+          myPieChart.data.datasets.pop()
+          myPieChart.data.labels.pop()
+          res.datasets.forEach((dataset) => {
+            myPieChart.data.datasets.push(dataset);
+          });
+
+          res.labels.forEach((label) => {
+            myPieChart.data.labels.push(label);
+          });
+
+          myPieChart.update();
+        },
+        error: function(err){
+          console.log("error :", err.message)
+          err.datasets.data.forEach((data) => {
+            myPieChart.data.datasets.data.push(data);
+          });
+
+          err.datasets.backgroundColor.forEach((color) => {
+            myPieChart.data.datasets.backgroundColor.push(color);
+          });
+
+          err.datasets.labels.forEach((label) => {
+            myPieChart.data.datasets.labels.push(label);
+          });
+          myPieChart.update();
+        }
+      })
+    }
+
+    function loadLineChart(){
+      $.ajax({
+        url:"/stat/line-chart",
+        method: "GET",
+        dataType: "json",
+        success: function(res){
+          res.datasets.forEach((dataset) => {
+            myLineChart.data.datasets.push(dataset);
+          });
+          myLineChart.update();
+        },
+        error: function(err){
+          console.log("error :", err.message)
+          err.datasets.forEach((dataset) => {
+            myLineChart.data.datasets.push(dataset);
+          });
+          myLineChart.update();
+        }
+      })
+    }
+
+    function loadBarChart(monthId = "all"){
+      $.ajax({
+        url:`/stat/barchart?month=${monthId}`,
+        method: "GET",
+        dataType: "json",
+        success: function(res){
+          res.datasets.forEach((dataset) => {
+            myBarChart.data.datasets.pop()
+            myBarChart.data.datasets.push(dataset);
+          });
+          myBarChart.update();
+        },
+        error: function(err){
+          console.log("error :", err.message)
+          err.datasets.forEach((dataset) => {
+            myBarChart.data.datasets.push(dataset);
+          });
+          myBarChart.update();
+        }
+      })
+    }

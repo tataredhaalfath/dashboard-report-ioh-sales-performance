@@ -32,8 +32,13 @@ const multerUploadCompletion = multer({
   storage: multer.diskStorage({
     destination: uploadCompletionDir,
     filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const fileName = file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop();
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const fileName =
+        file.fieldname +
+        "-" +
+        uniqueSuffix +
+        "." +
+        file.originalname.split(".").pop();
       cb(null, fileName);
     },
   }),
@@ -54,6 +59,12 @@ app.use(function (req, res, next) {
 });
 
 app.get("/", Dashboard.index);
+app.get("/stat/multiline-chart", Dashboard.multipleLineChart);
+app.get("/stat/line-chart", Dashboard.lineChart);
+app.get("/stat/piechart", Dashboard.pieChart);
+app.get("/stat/barchart", Dashboard.barChart);
+
+//PERFORMANCE
 app.get("/performance", Performance.index);
 app.get("/performance/datatable", Performance.dataTable);
 app.post(

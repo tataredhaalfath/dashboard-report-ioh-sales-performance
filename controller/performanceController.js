@@ -137,7 +137,7 @@ module.exports = {
           average: parseInt(arr.Average.replace("%", "")),
           achivement: arr["Sales Achicevements 95"],
           email: arr.Username,
-          position: arr["Sales Achicevements 95"],
+          position: arr["Position Job Title"],
           directorate_name: arr["Directorate Name"],
           location_group:
             arr["Location Group (Personal Area) (Location Group Name)"],
