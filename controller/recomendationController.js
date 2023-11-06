@@ -91,7 +91,11 @@ module.exports = {
           : `<button class='badge badge-warning' >
                 UnCompleted
             </button>`;
-        item.url = `<a href="${item.url}" target="_blank" onClick="updateStatus(${item.id})">${item.url}</a>`;
+        if(req.user.division_id == 1){
+          item.url = `<p>${item.url}</p>`;
+        }else{
+          item.url = `<a href="${item.url}" target="_blank" onClick="updateStatus(${item.id})">${item.url}</a>`;
+        }
         item.visited =
           item.status == 1
             ? `<button class='badge badge-success' >
