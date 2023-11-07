@@ -24,7 +24,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_DATABASE: report_ioh
-      MYSQL_ROOT_PASSWORD: Rahasia123
+      MYSQL_ROOT_PASSWORD: semogajuarasatu
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     volumes:
