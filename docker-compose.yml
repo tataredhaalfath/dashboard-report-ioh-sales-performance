@@ -1,0 +1,37 @@
+version: '2.0'
+services:
+  webreport:
+    container_name: webreport
+    build: ./
+    restart: always
+    env_file: ./.env
+    ports:
+      - $PORT:$PORT
+    environment:
+      - PORT=$PORT
+      - NODE_ENV=$NODE_ENV
+    volumes:
+      - /home/adysaskin/cdn.webreport/img:/usr/src/app/public/assets/completion
+    networks:
+      - report-network
+  
+  db_webreport:
+    image: mysql:5.7.22
+    container_name: db_webreport
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: report_ioh
+      MYSQL_ROOT_PASSWORD: Rahasia123
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - /home/adysaskin/cdn.webreport/db:/var/lib/mysql
+    networks:
+      - report-network
+
+networks:
+  survey:
+    driver: bridge
