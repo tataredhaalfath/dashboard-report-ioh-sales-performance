@@ -6,9 +6,9 @@ services:
     restart: always
     env_file: ./.env
     ports:
-      - $PORT:$PORT
+      - $NODE_PORT:$NODE_PORT
     environment:
-      - PORT=$PORT
+      - PORT=$NODE_PORT
       - NODE_ENV=$NODE_ENV
     volumes:
       - /home/adysaskin/cdn.webreport/img:/usr/src/app/public/assets/completion
