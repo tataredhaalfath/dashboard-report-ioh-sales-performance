@@ -33,5 +33,5 @@ services:
       - report-network
 
 networks:
-  survey:
+  report-network:
     driver: bridge
