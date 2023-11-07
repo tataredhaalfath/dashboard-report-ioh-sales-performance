@@ -20,7 +20,7 @@ module.exports = {
       monthList.push(monthData);
     }
 
-    res.render("pages/salesperformance", {
+    return res.render("pages/salesperformance", {
       title: "Performa Sales",
       divisionId,
       currentMonth,
@@ -245,7 +245,7 @@ module.exports = {
         divisionPerformance[0].average
       ).toFixed(2);
 
-      res.json({
+      return res.json({
         status: "success",
         datasets: [
           {

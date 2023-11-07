@@ -8,7 +8,7 @@ const csvtojson = require("csvtojson/v2");
 module.exports = {
   index: async (req, res, next) => {
     let divisions = await Division.findAll({ attributes: ["id", "name"] });
-    res.render("pages/performance", { title: "Data Performa", divisions });
+    return res.render("pages/performance", { title: "Data Performa", divisions });
   },
 
   dataTable: async (req, res, next) => {

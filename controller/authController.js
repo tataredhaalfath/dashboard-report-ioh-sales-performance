@@ -9,7 +9,7 @@ module.exports = {
     if (req.session.user) {
       return res.redirect("/");
     }
-    res.render("pages/login", {
+    return res.render("pages/login", {
       title: "Login",
     });
   },

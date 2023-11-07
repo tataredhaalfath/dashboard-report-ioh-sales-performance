@@ -19,7 +19,7 @@ module.exports = {
       monthList.push(monthData);
     }
 
-    res.render("pages/dashboard", {
+    return res.render("pages/dashboard", {
       title: "Main Dashboard",
       divisionId,
       currentMonth,
@@ -307,7 +307,7 @@ module.exports = {
         },
       ];
 
-      res.json({
+      return res.json({
         status: "success",
         datasets,
         labels,
@@ -439,7 +439,7 @@ module.exports = {
         divisionPerformance[0].average
       ).toFixed(2);
 
-      res.json({
+      return res.json({
         status: "success",
         datasets: [
           {
