@@ -40,4 +40,4 @@ async function bulkSync() {
     });
 }
 
-// bulkSync();
+bulkSync();
