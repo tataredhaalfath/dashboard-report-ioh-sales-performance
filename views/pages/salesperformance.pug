@@ -164,6 +164,7 @@ block script
         dataType: "json",
         success: function(res){
           res.datasets.forEach((dataset) => {
+            myLineChart.data.datasets = []
             myLineChart.data.datasets.push(dataset);
           });
           myLineChart.update();

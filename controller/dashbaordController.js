@@ -386,6 +386,7 @@ module.exports = {
           email: email,
           ...filterMonth,
         },
+        group: ["position"],
       });
 
       ownPerformance = JSON.parse(JSON.stringify(ownPerformance));
@@ -415,6 +416,7 @@ module.exports = {
           position: ownPerformance.position,
           ...filterMonth,
         },
+        group: ["position"],
       });
 
       divisionPerformance = JSON.parse(JSON.stringify(divisionPerformance));
