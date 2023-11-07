@@ -2,8 +2,8 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open("my-cache").then((cache) => {
       return cache.addAll([
-        "/login",
         "/",
+        "/login",
         "/assets/js/plugin/webfont/webfont.min.js",
         "/assets/css/bootstrap.min.css",
         "/assets/css/atlantis.css",
@@ -29,9 +29,9 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  // event.respondWith(
+  //   caches.match(event.request).then((response) => {
+  //     return response || fetch(event.request, { mode: 'follow' });
+  //   })
+  // );
 });
